@@ -1,0 +1,30 @@
+OUTDIR	./out
+SAMPLE	./samples.lst
+
+#	parameter
+READLEN	150
+MINLEN	60
+THREAD	24
+
+#STANDTYPE	FR/FF/RF/RR
+#	pro
+BIN	bin
+FASTQC	fastqc
+HISAT2	hisat2
+STRINGTIE	stringtie
+SAMTOOLS	samtools
+HOMER	/homer/bin
+
+#	for	STAR
+GTF	../data/refGene.gtf
+SPE	human
+INDEX	../data/hisat2_index/hg19
+CHROMSIZE	../data/hg19/hg19.chrom.size
+
+#	for	dsanalysis
+Chr	../data/chr.lst
+Bedtools	bedtools
+ISeeRNA	iSeeRNA
+Iseerna_conf	../data/iseerna.conf
+FeatureCounts	featureCounts
+Rscript	Rscript
