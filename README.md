@@ -21,7 +21,7 @@ To run dslnc package, please install the following requirements.
 + [Rscript] (r-3.6.0)
 + [GTF] (hg19) (you can download from [https://gitee.com/hui-tingzi/test/blob/master/data/refGene.rar](https://gitee.com/hui-tingzi/test/blob/master/data/refGene.rar))
 
-### Testing data preparation
+### Preparation of Testing dataset
 
 ```bash
 # Disease1: https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR8052751/SRR8052751.1
@@ -55,6 +55,7 @@ Write the configure file, please refer to a template of [the config.txt file](ht
 Please prepare config.txt file as follows: 
 
 ```bash
+# parameter_id<tab>path_to_directory or exec program
 OUTDIR  ./out
 SAMPLE  ./samples.lst
 
@@ -125,43 +126,38 @@ Please make sure the directory looks like as follows:
 
 ------------------------------------------------------------------------
 
-### Workflow
+### Run dslnc analysis step by step
 
-##### Example data: If you would like to use example data for practicing the workflow, you could download human RNAseq data as below.
+#### Preparation of testing dataset 
+
+If you would like to use example data for practicing the workflow, please download human RNAseq datasets from NCBI.
 
 ```bash
 Disease1: https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR8052751/SRR8052751.1
 Disease2: https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR8052708/SRR8052708.1
 ```
 
-### Quick start
+#### Prepare samples.lst and config.txt files
 
- We can issue all the commands step by step or use quick start as below. The result is the same.
+Please prepare these files as mentioned in "Getting start" part.
 
-#### Command
-
-```bash
-Quick Start
-perl ../bin/dslnc.pl ../bin/config.txt 
-sh ../bin/auto_run.sh
-```
-
-------------------------------------------------------------------------
-
-
-### Step 1. RNAseq analysis
+#### Step 1. RNAseq analysis
 
 #### Command
 
 ```bash
+# create makefile for RNA-seq analysis.
 perl ../bin/dslnc.pl ../bin/config.txt
 sh out/1.standard/standard.sh
+
+# run RNA-seq analysis for all samples
 cd out/1.standard && make && cd -
 ```
 
 #### Output
 
-The first command will  generated a folder named out, which contain 4 subfolders , namely 1.standard, 2.identification, 3.filter, 4.ds_score desperately. There will be  a makefile in each subfolders that stores detailed commands. The second command will  automate the RNASeq workflow  for each sample one by one, and it might take a long time depending on your computer. The third command assumes RNAseq analysis  has been processesed correctly. A gtf.lst for gtf of each sample will be generated.
+In this step, it will run RNA-seq analysis in all samples one by one. It might take a long time in this step depending on your computer resource.
+You can obtain a transcriptome assembly for each sample.
 
 ```bash
 ├── out
@@ -187,7 +183,7 @@ The first command will  generated a folder named out, which contain 4 subfolders
 ```
 ------------------------------------------------------------------------
 
-### Step 2. Novel lncRNAs identification
+#### Step 2. Identification of novel lncRNAs
 
 #### Command
 
@@ -197,7 +193,7 @@ cd out/2.identification && make && cd -
 
 #### Output
 
-This run  will generate novel lncRNAs, which can be seen in test/out/2.identification/novo.lncrna.lst. This run will also generate a merged gtf for all the samples, which can be seen in test/out/2.identification/all.final.gtf.
+We combine all transcriptome assemblies and predict novel lncRNAs, please refer to test/out/2.identification/novo.lncrna.lst. This step also generate a merged gtf for all the samples, which can be found at test/out/2.identification/all.final.gtf.
 
 ```bash
 ├── 2.identification
@@ -331,7 +327,7 @@ This run  will generate novel lncRNAs, which can be seen in test/out/2.identific
 
 ------------------------------------------------------------------------
 
-### Step 3. Expression filtering
+#### Step 3. Filtering low expressed lncRNAs
 
 #### Command
 
@@ -340,7 +336,7 @@ cd out/3.filter && make && cd -
 ```
 #### Output
 
-This run will get the expression levels of all genes (/test/out/3.filter/fpkm_result.txt) and the lncRNA and protein coding genes with low expression levels can be filtered out(/test/out/3.filter/all.lncRNA.filter.fpkm.txt and /test/out/3.filter/all.pcg.filter.fpkm.txt).
+This step will quatify the expression level of all lncRNAs, please refer to ./test/out/3.filter/fpkm_result.txt. On the other hand, lncRNAs and protein coding genes (PCGs) with low expression levels will be filtered out (please refer to: /test/out/3.filter/all.lncRNA.filter.fpkm.txt and /test/out/3.filter/all.pcg.filter.fpkm.txt).
 
 ```bash
 ├── 3.filter
@@ -367,10 +363,9 @@ This run will get the expression levels of all genes (/test/out/3.filter/fpkm_re
 │   ├── pcg.fpkm.txt
 │   └── refgene.codingene.lst
 ```
-
 ------------------------------------------------------------------------
 
-### Step 4. Calculation of disease-specificity score
+#### Step 4. Disease-specificity score (DS score) calculation
 
 #### Command
 
@@ -380,7 +375,7 @@ cd out/4.ds_score && make && cd -
 
 #### Output
 
-The disease-specificity score of lncRNAs and protein coding genes will store scanning result in test/out/4.ds_score/all.lncRNA.filter.dsscore.txt and test/out/4.ds_score/all.pcg.filter.dsscore.txt desperately.The destiny.pdf will generated to show the comparion between lncRNA and protein coding genes.
+The disease-specificity score of lncRNAs and protein coding genes is in test/out/4.ds_score/all.lncRNA.filter.dsscore.txt and test/out/4.ds_score/all.pcg.filter.dsscore.txt, respectively. destiny.pdf shows the comparion of DS score distribution between lncRNAs and protein coding genes.
 
 ```bash
 └── 4.ds_score
@@ -408,24 +403,25 @@ The disease-specificity score of lncRNAs and protein coding genes will store sca
 ```
 
 
-The rusult of disease-specifity score.
+The format of disease-specifity score result.
+
 ```bash
-#{id}tab{disease1}tab{disease2}tab{DS_scor _of_gene}tab{most_specific_disease}
+#{id}\tab{disease1}\tab{disease2}\tab{DS_scor _of_gene}\tab{most_specific_disease}
 LOC100133091            0.851892614542727               2.8187855877881 0.896895005858782	disease1	
 LOC101928126            3.02669783420868                1.16114685818554        0.86991908642307        disease2
 RALY-AS1                1.06407345733899                1.59204120009034        0.773022319339166	disease1
 AS-PTPRE                2.0092520953125         1.42828260748092        0.75973106098206        disease2
 ```
 
+This density plot shows DS score of lncRNAs (green) compared with PCGs (pink).
 
-This destiny plot is of DS score of lncRNAs (green) compared with protein coding genes (pink).
 ![destiny plot](README_files/destiny.png)
 
 
 ------------------------------------------------------------------------
 
-### Citations:
+### Please cite
 
-When you use this pipwline, please site Liu et al. 2022 The long noncoding RNA atlas in healthy and diseased skin(manuscript in preparation).
+Liu et al. 2022 The long noncoding RNA atlas in healthy and diseased skin (manuscript in preparation).
 
 
