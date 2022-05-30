@@ -1,13 +1,15 @@
-Disease-specificity analysis using RNA-Seq (Workflow)
+Disease specificity analysis of lncRNA through integrative analysis of RNA-Seq datasets
 ================
 
-##### Liu Huiting (2202/05/07)
+##### Liu Huiting (2022/05/07)
 
 ### Introduction
 
-Not only does RNAseq have the ability to analyze differences in gene expression between samples, but can discover novel lncRNAs and genes expressed specifically. The dslnc.pl was aimed to identify novel lncRNAs and find disease-specific lncRNAs(including known and novel lncRNAs) in an organ system.
+dslnc package is designed to retrieve known and novel long noncoding RNAs (lncRNAs) transcripts and analyze the disease-specific lncRNAs in multiple diseases through integrative analysis of RNA-seq data from an organ system. It also provides utilities for functional annotation of disease-specific lncRNAs. We believe that dslnc can accelerate the fundamental research in dissecting the functional role of lncRNAs in human diseases.
 
 ### Requirement
+
+To run dslnc package, please install the following requirements.
 
 + [FASTQ](Version 0.11.8)
 + [HISAT2] (v2.0.5)
@@ -17,39 +19,51 @@ Not only does RNAseq have the ability to analyze differences in gene expression 
 + [Bedtools] (https://github.com/arq5x/bedtools2)
 + [ISeeRNA] (http://www.myogenesisdb.org/iSeeRNA)
 + [Rscript] (r-3.6.0)
-+ [GTF] (hg19) or (https://gitee.com/hui-tingzi/test/blob/master/data/refGene.rar)
++ [GTF] (hg19) (you can download from [https://gitee.com/hui-tingzi/test/blob/master/data/refGene.rar](https://gitee.com/hui-tingzi/test/blob/master/data/refGene.rar))
 
-### test data
+### Testing data preparation
 
 ```bash
-Disease1: https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR8052751/SRR8052751.1
-Disease2: https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR8052708/SRR8052708.1
+# Disease1: https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR8052751/SRR8052751.1
+# Disease2: https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR8052708/SRR8052708.1
+
+cd dslnc/data
+mkdir srr
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR8052751/SRR8052751.1
+wget https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos2/sra-pub-run-15/SRR8052708/SRR8052708.1
+
+# you can download sra-toolkits (https://hpc.nih.gov/apps/sratoolkit.html).
+fastq-dump --split-files SRR8052751.1
+fastq-dump --split-files SRR8052708.1
 ```
 
-### Getting started
+### Getting start
 
-#### A.Input data: download and extract the relevant files  and write the samples.lst(the format should look something like this)
+#### A.input data preparation
+
+Prepare the samples.lst file.
+The samples.lst file format should be prepared as follows:
 
 ```bash
 CTRL_002_healthy	../data/srr/SRR8052751_1.fastq	../data/srr/SRR8052751_2.fastq
 AD_004_lesional	../data/srr/SRR8052708_1.fastq	../data/srr/SRR8052708_2.fastq
 ```
 
-#### B.Edit configuration at bin/config.txt
-Except for the software that needs to be installed(you should set the environment variable configuration), all the required scripts have been placed in https://gitee.com/hui-tingzi/test/blob/master/bin/, which can be downloaded and used directly.
-Write the configure file, please refer to the format,please refer to the format here(https://gitee.com/hui-tingzi/test/blob/master/bin/config.txt).
+#### B.prepare the config.txt file
+
+Write the configure file, please refer to a template of [the config.txt file](https://gitee.com/hui-tingzi/test/blob/master/bin/config.txt).
+Please prepare config.txt file as follows: 
 
 ```bash
 OUTDIR  ./out
 SAMPLE  ./samples.lst
 
-#       parameter
+# parameter
 READLEN 150
 MINLEN  60
 THREAD  24
 
-#STANDTYPE      FR/FF/RF/RR
-#       pro
+# program setting
 BIN     bin
 FASTQC  fastqc
 HISAT2  hisat2
@@ -57,13 +71,13 @@ STRINGTIE       stringtie
 SAMTOOLS        samtools
 HOMER   /homer/bin
 
-#       for     STAR
+# for STAR
 GTF     ../data/refGene.gtf
 SPE     human
 INDEX   ../data/hisat2_index/hg19
 CHROMSIZE       ../data/hg19/hg19.chrom.size
 
-#       for     dsanalysis
+# for dslnc analysis
 Chr     ../data/chr.lst
 Bedtools        bedtools
 ISeeRNA iSeeRNA
@@ -72,46 +86,42 @@ FeatureCounts   featureCounts
 Rscript Rscript
 ```
 
-#### C.Make the appropriate directories as shown. 
+#### C.create makefile for dslnc analysis. 
+
+Create a makefile and run dslnc analysis automatically.
 
 ```bash
-├── bin
-│   ├── auto_run.sh
-│   ├── chr.lst
-│   ├── codingpotential_filter.pl
-│   ├── config.txt
-│   ├── count_to_fpkm.R
-│   ├── destiny.R
-│   ├── dslnc.pl
-│   ├── ds_score.pl
-│   ├── fishInWinter.pl
-│   ├── generate_final_gtf.pl
-│   ├── get_average.pl
-│   ├── get_codingscore.pl
-│   ├── get_gtf8bed.pl
-│   ├── get_known_lncrna.pl
-│   ├── get_noncodingscore.pl
-│   ├── get_sampleid.pl
-│   ├── gtf_to_bed.pl
-│   ├── gtf_to_lnclst.pl
-│   ├── identification.pl
-│   ├── iseerna.conf
-│   ├── new.filter_lncrna.pl
-│   ├── old_get_average.pl
-│   ├── refGene.anno
-│   └── refGene.bed
-├── data
-│   ├── chr.lst
-│   ├── hg19.chrom.sizes
-│   ├── hisat2_index
-│   ├── iseerna.conf
-│   ├── refGene.anno
-│   ├── refGene.bed
-│   └── refGene.gtf
-└── test
-    └── samples.lst
+# Create a makefile
+perl ../bin/dslnc.pl ../bin/config.txt 
+
+# run dslnc analysis
+sh ../bin/auto_run.sh
 ```
 
+Please make sure the directory looks like as follows:
+
+```bash
+├── out
+│   ├── 1.standard
+│   │   ├── CTRL_001_health
+│   │   │   ├── 00datafilter
+│   │   │   ├── 01alignment
+│   │   │   ├── 02assembly
+│   │   │   └── makefile
+│   │   ├── makefile
+│   │   └── PCA_002_lesional
+│   │       ├── 00datafilter
+│   │       ├── 01alignment
+│   │       ├── 02assembly
+│   │       └── makefile
+│   ├── 2.identification
+│   │   └── makefile
+│   ├── 3.filter
+│   │   └── makefile
+│   └── 4.ds_score
+│       └── makefile
+└── samples.lst
+```
 
 ------------------------------------------------------------------------
 
