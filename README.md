@@ -19,7 +19,6 @@ To run dslnc package, please install the following requirements.
 + [Bedtools] (https://github.com/arq5x/bedtools2)
 + [ISeeRNA] (http://www.myogenesisdb.org/iSeeRNA)
 + [Rscript] (r-3.6.0)
-+ [GTF] (hg19) (you can download from [https://gitee.com/hui-tingzi/test/blob/master/data/refGene.rar](https://gitee.com/hui-tingzi/test/blob/master/data/refGene.rar))
 
 ### Preparation of Testing dataset
 
@@ -70,13 +69,15 @@ FASTQC  fastqc
 HISAT2  hisat2
 STRINGTIE       stringtie
 SAMTOOLS        samtools
+Liftover	liftOver (needed for hg38)
 HOMER   /homer/bin
 
+
 # for STAR
-GTF     ../data/refGene.gtf
+GTF     ../data/refGene.gtf or ../data/hg38.refGene.gtf (choose  one version )
 SPE     human
-INDEX   ../data/hisat2_index/hg19
-CHROMSIZE       ../data/hg19/hg19.chrom.size
+INDEX   ../data/hisat2_index/hg19 or ../data/hisat2_index/hg38 (choose  one version )
+CHROMSIZE       ../data/hg19/hg19.chrom.size or ../data/hg38/hg38.chrom.size (choose  one version )
 
 # for dslnc analysis
 Chr     ../data/chr.lst
@@ -85,7 +86,9 @@ ISeeRNA iSeeRNA
 Iseerna_conf    ../data/iseerna.conf
 FeatureCounts   featureCounts
 Rscript Rscript
+Hg38ToHg19.over.chain	../data/hg38ToHg19.over.chain (needed for hg38)
 ```
+
 
 #### C.create makefile for dslnc analysis. 
 
@@ -93,10 +96,14 @@ Create a makefile and run dslnc analysis automatically.
 
 ```bash
 # Create a makefile
-perl ../bin/dslnc.pl ../bin/config.txt 
+perl ../bin/hg19.dslnc.pl ../bin/config.txt (hg19)
+
+# if analysis with hg38 as reference, please run as follows:
+# perl ../bin/hg38.dslnc.pl ../bin/config.txt (hg38)
 
 # run dslnc analysis
-sh ../bin/auto_run.sh
+sh ../bin/auto_run.sh 
+
 ```
 
 Please make sure the directory looks like as follows:
